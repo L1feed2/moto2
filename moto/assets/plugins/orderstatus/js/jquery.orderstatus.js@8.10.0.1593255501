@@ -1,0 +1,146 @@
+/**
+ * jQuery.shipcalc plugin
+ *
+ * This file is a part of Orderstatus plugin for Shop-Script 6+
+ *
+ * Uses ECMAScript 5 features:
+ *  - Object.keys()
+ *
+ * So for browsers prior to IE9 we need some polyfills
+ */
+
+// Pre-IE9 browsers needs a polyfill. We aren't greedy
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+if (!Object.keys) {
+    Object.keys = (function () {
+        'use strict';
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+            dontEnums = [
+                'toString',
+                'toLocaleString',
+                'valueOf',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'constructor'
+            ],
+            dontEnumsLength = dontEnums.length;
+
+        return function (obj) {
+            if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
+
+            var result = [], prop, i;
+
+            for (prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
+
+            if (hasDontEnumBug) {
+                for (i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
+    }());
+}
+
+(function ($) {
+    var l10n = {
+        'No such order': 'No such order',
+        'Current order state': 'Current order state',
+        'Check another order': 'Check another order'
+    };
+    var methods = {
+        init: function (options) {
+            return this.each(function () {
+                var $this = $(this);
+                var data = $this.data('orderstatus');
+                var $form = $('form', $this);
+                var $submit_btn = $('input[type=submit],button[type=submit]', $form);
+                var defaults = {l10n: l10n};
+
+                if (!data) {
+                    data = {target: $this, options: {}};
+                }
+                data.options = $.extend(true, {}, defaults, data.options, options);
+                $this.data('orderstatus', data);
+
+                $form.on('submit.orderstatus', function () {
+                    $submit_btn.prop('disabled', true).after('<i class="icon16 loading"></i>');
+                    $.ajax($form.attr('action'), {
+                        dataType: 'json',
+                        data: $form.serialize(),// + '&' + $.param({_csrf: $.cookie('_csrf')}),
+                        method: 'POST'
+                    })
+                        .done(function (r) {
+                            showResult(r.data, $this);
+                        })
+                        .always(function () {
+                            $submit_btn.prop('disabled', false);
+                            $('i.loading', $form).remove();
+                        });
+
+                    return false;
+                });
+                $this.on('click.orderstatus', '.reset', function () {
+                    $('.result', $this).hide(100, function () {
+                        $(this).empty();
+                        $form.show();
+                    })
+                })
+            })
+        },
+        destroy: function () {
+            return this.each(function () {
+                var $this = $(this);
+                $this.removeData('orderstatus');
+                [$this, $('form', $this)].each(function (object) {
+                    object.off('.orderstatus');
+                })
+            })
+        },
+        l10n: function (strings) {
+            var new_l10n = (strings && (strings instanceof Object)) ? strings : {};
+            $.extend(l10n, new_l10n);
+        }
+    };
+
+    $.fn.orderstatus = function (method) {
+        if (methods[method]) {
+            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1))
+        } else if (typeof method === 'object' || !method) {
+            return methods.init.apply(this, arguments);
+        } else {
+            $.error('jQuery.orderstatus: Unknown method ' + method)
+        }
+    };
+
+    function showResult(data, $container) {
+        var $resultDiv = $('.result', $container);
+        var myData =$container.data('orderstatus');
+        var l10n = myData.options.l10n;
+        $('form', $container).hide(100, function () {
+            if ((typeof data !== 'object') || !Object.keys(data).length) {
+                $resultDiv
+                    .append('<span class="error">' + l10n['No such order'] + '</span>')
+            } else {
+                $resultDiv
+                    .append(
+                    '<span class="message">' + l10n['Current order state'] + '<span class="order_no">' + data.id_str + '</span></span>' +
+                    '<span class="order_status" style="' + data.status.style + '">' + data.status.name + '</span>'
+                )
+            }
+            $resultDiv
+                .append('<span><a href="javascript:void(0)" class="reset">' + l10n['Check another order'] + '</a></span>')
+                .show()
+        });
+    }
+})(jQuery);

@@ -1,0 +1,10 @@
+.s-plugin-orderstatus-container { margin: 15px 0; color: #333; }
+.s-plugin-orderstatus-container h5 { margin-bottom: 0; }
+.s-plugin-orderstatus-container .label-order-prefix, .s-plugin-orderstatus-container .label-order-suffix { font-weight: bold; }
+.s-plugin-orderstatus-container input.s-plugin-orderstatus-order_id-input { width: 7em; }
+.s-plugin-orderstatus-container a.reset { display: block; }
+.s-plugin-orderstatus-container a.reset, .s-plugin-orderstatus-container a.reset:visited { color: #006bd8 !important; }
+.s-plugin-orderstatus-container .message .order_no { display: inline-block; margin: 0 0.3em; font-weight: bold; }
+.s-plugin-orderstatus-container .order_status { display: inline-block; margin: 0 0.3em; padding: 0 0.3em; color: lightyellow; }
+
+/*# sourceMappingURL=orderstatus.css.map */

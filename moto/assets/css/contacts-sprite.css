@@ -1,0 +1,29 @@
+.contacts-icons {
+    background-image: url(../../img/contacts-sprite.png);
+    background-repeat: no-repeat;
+    display: block;
+}
+
+.contacts-icons-location {
+    width: 20px;
+    height: 30px;
+    background-position: -2px -2px;
+}
+
+.contacts-icons-map {
+    width: 750px;
+    height: 431px;
+    background-position: -2px -36px;
+}
+
+.contacts-icons-phone {
+    width: 25px;
+    height: 30px;
+    background-position: -26px -2px;
+}
+
+.contacts-icons-vodafone {
+    width: 15px;
+    height: 15px;
+    background-position: -55px -2px;
+}
